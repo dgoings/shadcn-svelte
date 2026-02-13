@@ -78,14 +78,12 @@ export async function resolveRegistryItems({
 				remoteUrl = new URL(item, parentUrl);
 				const [result] = await fetchRegistry([remoteUrl]);
 				resolvedItem = schemas.registryItemSchema.parse(result);
+			} else if (parentUrl) {
+				// plain name dep of a remote item — resolve as `<name>.json` against the parent's URL
+				remoteUrl = new URL(`${item}.json`, parentUrl);
+				const [result] = await fetchRegistry([remoteUrl]);
+				resolvedItem = schemas.registryItemSchema.parse(result);
 			} else {
-				// diff error messages depending on whether we're resolving from the user's registry or a remote URL
-				if (parentUrl) {
-					throw error(
-						`Registry item '${item}' does not exist in the remote registry at '${parentUrl.origin}', nor is it a valid URL or relative path.`
-					);
-				}
-
 				let message = `Registry item '${item}' does not exist in the registry at '${registryUrl}'.`;
 				if (registryUrl !== OFFICIAL_REGISTRY_URL) {
 					message += `\n\nIf you're trying to use shadcn-svelte components, ensure your 'registry' property in components.json is set to '${OFFICIAL_REGISTRY_URL}'.`;
